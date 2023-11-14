@@ -1,38 +1,121 @@
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-byte-order-marker
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: detect-private-key
+      - id: end-of-file-fixer
+        exclude: ^(src/pages/|src/bk-login/pages)
+      - id: trailing-whitespace
+        exclude: ^(src/pages/|src/bk-login/pages)
   - repo: local
     hooks:
       - id: Name check
-        name: Check sensitive info
+        name: Check sensitive info of name
         verbose: true
         language: system
         entry: bash -c "if [[ -d pre_commit_hooks ]]; then pre_commit_hooks/rtx.sh $@; fi"
+        exclude: >
+          (?x)^(
+            .*/\.env|
+            .*/poetry\.lock|
+            .*/pyproject\.toml|
+            src/bk-user/logs|
+            src/pages/node_modules/
+          )$
       - id: IP check
-        name: Check sensitive info
+        name: Check sensitive info of ip
         verbose: true
         language: system
-        exclude: "^(.*/poetry.lock|.*/requirements.txt)|src/login/locale/en/LC_MESSAGES/django.po|src/login/bklogin/templates/account/agreement.part"
+        exclude: >
+          (?x)^(
+            .*/\.env|
+            .*/poetry\.lock|
+            .*/pyproject\.toml|
+            \.github/workflows/bk-user.yml|
+            \.github/workflows/bk-login.yml|
+            \.github/workflows/idp-plugins.yml|
+            src/bk-user/logs|src/pages/node_modules/|
+            src/bk-login/pages/src/views/components/protocol.vue|
+            src/pages/static/bk_icon_font/iconcool.json|
+            src/pages/static/bk_icon_font/iconcool.js|
+            src/pages/paas-server/index.js|
+            src/bk-login/pages/paas-server/index.js
+          )$
         entry: bash -c "if [[ -d pre_commit_hooks ]]; then pre_commit_hooks/ip.sh $@; fi"
-      - id: isort
-        name: isort
+  - repo: local
+    hooks:
+      - id: format
+        name: ruff-formatter
         language: python
         types: [python]
-        pass_filenames: false
-        entry: isort --settings-path=pyproject.toml src
-      - id: black
-        name: black
+        entry: ruff format --config=src/bk-user/pyproject.toml --force-exclude
+        files: src/bk-user/
+      - id: ruff
+        name: ruff
         language: python
         types: [python]
-        pass_filenames: false
-        entry: black --config=pyproject.toml src
-      - id: flake8
-        name: flak8
-        language: python
-        types: [python]
-        pass_filenames: false
-        entry: pflake8 --config=pyproject.toml src
+        entry: ruff --config=src/bk-user/pyproject.toml --force-exclude --fix
+        files: src/bk-user/
       - id: mypy
         name: mypy
         language: python
         types: [python]
-        pass_filenames: false
-        entry: mypy src/ --config-file=pyproject.toml
+        entry: mypy --config-file=src/bk-user/pyproject.toml
+        files: src/bk-user/
+      - id: import-linter
+        name: import-linter
+        require_serial: true
+        language: system
+        entry: bash -c "cd src/bk-user && lint-imports"
+  - repo: local
+    hooks:
+      - id: format
+        name: ruff-formatter
+        language: python
+        types: [python]
+        entry: ruff format --config=src/bk-login/pyproject.toml --force-exclude
+        files: src/bk-login/
+      - id: ruff
+        name: ruff
+        language: python
+        types: [python]
+        entry: ruff --config=src/bk-login/pyproject.toml --force-exclude --fix
+        files: src/bk-login/
+      - id: mypy
+        name: mypy
+        language: python
+        types: [python]
+        entry: mypy --config-file=src/bk-login/pyproject.toml
+        files: src/bk-login/
+      - id: import-linter
+        name: import-linter
+        require_serial: true
+        language: system
+        entry: bash -c "cd src/bk-login && lint-imports"
+  - repo: local
+    hooks:
+      - id: format
+        name: ruff-formatter
+        language: python
+        types: [python]
+        entry: ruff format --config=src/bk-plugins/pyproject.toml --force-exclude
+        files: src/bk-plugins/
+      - id: ruff
+        name: ruff
+        language: python
+        types: [python]
+        entry: ruff --config=src/idp-plugins/pyproject.toml --force-exclude --fix
+        files: src/idp-plugins/
+      - id: mypy
+        name: mypy
+        language: python
+        types: [python]
+        entry: mypy --config-file=src/idp-plugins/pyproject.toml
+        files: src/idp-plugins/
